@@ -21,6 +21,18 @@ export default function Game() {
 
     const { socket } = useSocket()
 
+    // const myTime = useRef(null)
+
+    // const startInteval  = () => {
+    //     myTime.current = 8
+    //     const iv = setInterval(() => {
+    //         myTime.current = myTime.current -1
+    //         if(myTime.current == -8){
+    //             myTime.current = null
+    //             clearInterval(iv)
+    //         }
+    //     }, 1000);
+    // }
 
     // validations 
     // word validation
@@ -30,14 +42,14 @@ export default function Game() {
                 setError("Atleast 4 letter")
                 return;
             }
-            if(words.includes(wordInput)){
+            if (words.includes(wordInput)) {
                 setError('Word already in use')
                 return
             }
             await axois(`https://api.dictionaryapi.dev/api/v2/entries/en/${wordInput}`)
             setWords(prev => [...prev, wordInput])
             setMyWords(prev => [wordInput, ...prev])
-            setMyScore(prev =>  prev - (wordInput.length - 4))
+            setMyScore(prev => prev - (wordInput.length - 4))
 
             setWordInput('')
             setYourTurn(false)
@@ -58,7 +70,7 @@ export default function Game() {
         const value = e.target.value
         setWordInput(value)
         socket.emit('remote-input', value)
-        
+
 
         // start with last word's last letter
         let l = null;
@@ -88,7 +100,7 @@ export default function Game() {
     }
 
     const handleRemoteScore = (rs) => {
-        if(rs <= 0) {
+        if (rs <= 0) {
             setWinner('Your Friend')
         }
         setRemoteScore(rs)
@@ -96,61 +108,62 @@ export default function Game() {
 
     const handleTurn = () => {
         setYourTurn(true)
+        // startInteval()
     }
 
-    useEffect(()=> {
+    useEffect(() => {
         socket.on('remote-input', handleRemoteInput)
         socket.on('remote-word', handleRemoteWord)
         socket.on('remote-score', handleRemoteScore)
         socket.on('turn', handleTurn)
 
-        return ()=> {
+        return () => {
             socket.off('remote-input', handleRemoteInput)
             socket.off('remote-word', handleRemoteWord)
-        socket.off('remote-score', handleRemoteScore)
-        socket.off('turn', handleTurn)
+            socket.off('remote-score', handleRemoteScore)
+            socket.off('turn', handleTurn)
 
 
         }
     }, [])
 
-    if(winner){
+    if (winner) {
         return <h1>{winner} Won</h1>
     }
 
     return (
-       <>
-        <h1>{yourTurn ? "Your Turn": "Friend Turn"}</h1>
-        
-        <div className='flex gap-5'>
-            <div>
-                <h3>You {myScore}</h3>
-                <div>
-                    <div>
-                        <input type="text" onChange={handleWordInput} value={wordInput} className={`${!yourTurn? "bg-gray-100": ''}`} disabled={!yourTurn} />
-                        <button onClick={handleSubmit} disabled={!yourTurn}>submit</button>
-                    </div>
-                    {error && <p className='text-red-500'>{error}</p>}
-                </div>
-                <div>
-                    {myWords?.map(word => <p>{word}</p>)}
-                </div>
-            </div>
+        <>
+            <h1>{yourTurn ? "Your Turn" : "Friend Turn"}</h1>
 
-            <div>
-                <h3>Friend {remoteScore}</h3>
+            <div className='flex gap-5'>
                 <div>
+                    <h3>You {myScore}</h3>
                     <div>
-                        <input type="text" value={remoteInput} />
-                        {/* <button onClick={handleSubmit}>submit</button> */}
+                        <div>
+                            <input type="text" onChange={handleWordInput} value={wordInput} className={`${!yourTurn ? "bg-gray-100" : ''}`} disabled={!yourTurn} />
+                            <button onClick={handleSubmit} disabled={!yourTurn}>submit</button>
+                        </div>
+                        {error && <p className='text-red-500'>{error}</p>}
                     </div>
-                    {/* {error && <p className='text-red-500'>{error}</p>} */}
+                    <div>
+                        {myWords?.map((word, index) => <p key={index}>{word}</p>)}
+                    </div>
                 </div>
+
                 <div>
-                    {remoteWords?.map(word => <p>{word}</p>)}
+                    <h3>Friend {remoteScore}</h3>
+                    <div>
+                        <div>
+                            <input type="text" value={remoteInput} />
+                            {/* <button onClick={handleSubmit}>submit</button> */}
+                        </div>
+                        {/* {error && <p className='text-red-500'>{error}</p>} */}
+                    </div>
+                    <div>
+                        {remoteWords?.map((word, index) => <p key={index}>{word}</p>)}
+                    </div>
                 </div>
             </div>
-        </div>
         </>
     )
 }
